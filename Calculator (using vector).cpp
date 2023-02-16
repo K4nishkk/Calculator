@@ -8,10 +8,11 @@ Simple calculator program using vector
 
 pros:
     → for combination of integer operands and +, -, *, / operations
+    → can handle -ve integers
     → simple
 
 cons:
-    → cannot start with negative integer
+    → doesn't work for expressions containing parenthesis
     → not for double or floating operands
     → not precise (due to / operation and integer result)
     → high time complexity (multiple while loops)
@@ -45,16 +46,27 @@ vector<string> split(string s) {
     vector<string> vec{}; // storage vector
 
     if (s[0] == '-')
-        s.insert(s.begin(), {'0'}); // to have negative int at beginning
+        s.insert(s.begin(), {'0'}); // for expression beginning with - sign
 
-    for (int i{}, j{}; j < s.size() || i < s.size(); j++) {
-        if (isdigit(s[j]) == false) {
-            vec.insert(vec.end(), {s.substr(i, j - i), s.substr(j, 1)}); // inserting operand and operator at the end
-            i = j + 1; // assigning first digit posititon to leading pointer
+    for (int i{}, j{}; j < s.size(); j++) {
+        if (i == 0 && isdigit(s[j]) == true && isdigit(s[j + 1]) == false) {
+            vec.insert(vec.end(), {s.substr(i, j - i + 1)});
+            i = j + 1;
+        }
+        
+        else {
+            if (isdigit(s[j]) == true && isdigit(s[j - 1]) == false) // i is the start of integer
+                i = j;
+            
+            if (isdigit(s[j]) == true && isdigit(s[j + 1]) == false) { // j is end of integer
+                if (isdigit(s[i - 2]) == false)
+                    vec.insert(vec.end(), {s.substr(i - 2, 1), s.substr(i - 1, j - i + 2)}); // inserting operand and operator together
+                else
+                    vec.insert(vec.end(), {s.substr(i - 1, 1), s.substr(i, j - i + 1)}); // inserting operand and operator at the end
+            }
         }
     }
 
-    vec.pop_back(); // deleting last null character
     return vec;
 }
 
@@ -111,7 +123,7 @@ int cal(vector<string> &vec) {
 }
 
 int main () {
-    string s{"-54+69 *  58+111 - 255/ 12 +9"}; // input expression
+    string s{"-54+-69 *  -58+111 - -255/ 12 +9"}; // input expression
     
     // string s{}; // for user input
     // cout << "Input expression: ";
