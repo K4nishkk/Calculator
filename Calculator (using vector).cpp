@@ -44,6 +44,9 @@ void printVec(vector<string> &vec) {
 vector<string> split(string s) {
     vector<string> vec{}; // storage vector
 
+    if (s[0] == '-')
+        s.insert(s.begin(), {'0'}); // to have negative int at beginning
+
     for (int i{}, j{}; j < s.size() || i < s.size(); j++) {
         if (isdigit(s[j]) == false) {
             vec.insert(vec.end(), {s.substr(i, j - i), s.substr(j, 1)}); // inserting operand and operator at the end
@@ -108,7 +111,7 @@ int cal(vector<string> &vec) {
 }
 
 int main () {
-    string s{"54+69 *  58+111 - 255/ 12 +9"}; // input expression
+    string s{"-54+69 *  58+111 - 255/ 12 +9"}; // input expression
     
     // string s{}; // for user input
     // cout << "Input expression: ";
