@@ -15,8 +15,7 @@ Simple calculator program using doubly linked list
 pros:
     → for combination of integer operands and +, -, *, /, ^, () operations
     → nested paranthesis are allowed
-    → works for two operator situation
-    → simple
+    → mulitple simultaneous operators allowed
 
 cons:
     → not for double or floating operands
@@ -110,9 +109,9 @@ public:
     // return a multimap <priority, corresponding pointer to operator node>
     multimap<int, Node*> split(string s) {
 
-        multimap<int, Node*> pMap; // to store pointer to operators in order of precedence
+        multimap<int, Node*> pMap;
 
-        unordered_map<int, int> mFactor; // to store priority that needs to be subtacted
+        unordered_map<int, int> mFactor;
 
         int priority{0};
 
@@ -149,16 +148,19 @@ public:
                     i = j;
                 
                 if (isdigit(s[j]) == true && isdigit(s[j + 1]) == false) { // j is end of integer
-                        
-                    if (isdigit(s[i - 2]) == false) {
-                        pMap.insert(pair<int, Node*>(getPrecedence1(s[i - 2], priority - mFactor[i - 2]), insertNode(s[i - 2])));
-                        pMap.insert(pair<int, Node*>(getPrecedence0(s[i - 1], priority - mFactor[i - 1]), insertNode(s[i - 1])));
-                        insertNode(stoi(s.substr(i, j - i + 1)));
+
+                    int k{i - 1};
+
+                    while (isdigit(s[k]) == false) // count number of operators before integer
+                        --k;
+
+                    for (k = k + 1; k < i; k++) {
+                        if (isdigit(s[k - 1]) == true) // append binary operator
+                            pMap.insert(pair<int, Node*>(getPrecedence1(s[k], priority - mFactor[k]), insertNode(s[k])));
+                        else // append unary operator
+                            pMap.insert(pair<int, Node*>(getPrecedence0(s[k], priority - mFactor[k]), insertNode(s[k])));
                     }
-                    else {
-                        pMap.insert(pair<int, Node*>(getPrecedence1(s[i - 1], priority - mFactor[i - 1]), insertNode(s[i - 1])));
-                        insertNode(stoi(s.substr(i, j - i + 1)));
-                    }
+                    insertNode(stoi(s.substr(i, j - i + 1)));
                 }
             }
         }
@@ -287,7 +289,7 @@ void removeSpace(string &str) {
 }
 
 int main () {
-    string s{"-100*-12+(-4/(-6-19)-66)*+7^(5-2)"}; // input expression
+    string s{"-55*7+(-12+34/-(4*(47++-6))/-19)---4^5"}; // input expression
     
     // string s{}; // for user input
     // cout << "Input expression: ";
