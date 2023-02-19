@@ -32,24 +32,25 @@ cons:
 using namespace std;
 
 // function to return precedence for binary operators
-int getPrecedence1(char c, int priority) {
+int getPrecedence(char c, bool b) {
     unordered_map<char, int> pMap;
-    pMap['^'] = 3;
-    pMap['*'] = 2;
-    pMap['/'] = 2;
-    pMap['-'] = 1;
-    pMap['+'] = 0;
 
-    return pMap[c] + priority;
-}
+    // BINARY OPERATOR
+    if (b == 1) {
+        pMap['^'] = 3;
+        pMap['*'] = 2;
+        pMap['/'] = 2;
+        pMap['-'] = 1;
+        pMap['+'] = 0;
+    }
 
-// function to return precedence for unary operators
-int getPrecedence0(char c, int priority) {
-    unordered_map<char, int> pMap;
-    pMap['-'] = 11;
-    pMap['+'] = 10;
+    // UNARY OPERATOR
+    else {
+        pMap['-'] = 11;
+        pMap['+'] = 10;
+    }
     
-    return pMap[c] + priority;
+    return pMap[c];
 }
 
 class Node{
@@ -110,26 +111,23 @@ public:
     multimap<int, Node*> split(string s) {
 
         multimap<int, Node*> pMap;
-
-        unordered_map<int, int> mFactor;
-
         int priority{0};
 
         if (s[0] == '-')
             s.insert(s.begin(), {'0'}); // for expression beginning with - sign
 
-        for (int i{}, j{}; j < s.size(); j++) {
+        s.insert(s.begin(), '\0');
+
+        for (int i{1}, j{1}; j < s.size(); j++) {
 
             // update priority on basis of paranthesis
             if (s[j] == '(') {
                 priority += 100;
-                for (int k{j - 1}; isdigit(s[k]) == false; --k) {// count number of operators outside paranthesis
-                    mFactor[k] += 100;
-                }
                 s.erase(s.begin() + j);
                 j--;
                 continue;
             }
+            
             if (s[j] == ')') {
                 priority -= 100;
                 s.erase(s.begin() + j);
@@ -137,31 +135,14 @@ public:
                 continue;
             }
 
-            // parsing
-            if (i == 0 && isdigit(s[j]) == true && isdigit(s[j + 1]) == false) {// for integer at beginning of expression
-                insertNode(stoi(s.substr(i, j - i + 1)));
-                i = j + 1;
-            }
-            
+            if (isdigit(s[j]) == false) // j is an operator
+                pMap.insert(pair<int, Node*>(getPrecedence(s[j], (isdigit(s[j - 1]) ? 1 : 0)) + priority, insertNode(s[j])));
+
             else {
                 if (isdigit(s[j]) == true && isdigit(s[j - 1]) == false) // i is the start of integer
                     i = j;
-                
-                if (isdigit(s[j]) == true && isdigit(s[j + 1]) == false) { // j is end of integer
-
-                    int k{i - 1};
-
-                    while (isdigit(s[k]) == false) // count number of operators before integer
-                        --k;
-
-                    for (k = k + 1; k < i; k++) {
-                        if (isdigit(s[k - 1]) == true) // append binary operator
-                            pMap.insert(pair<int, Node*>(getPrecedence1(s[k], priority - mFactor[k]), insertNode(s[k])));
-                        else // append unary operator
-                            pMap.insert(pair<int, Node*>(getPrecedence0(s[k], priority - mFactor[k]), insertNode(s[k])));
-                    }
-                    insertNode(stoi(s.substr(i, j - i + 1)));
-                }
+                if (isdigit(s[j]) == true && isdigit(s[j + 1]) == false) // j is end of integer
+                    insertNode(stoi(s.substr(i, j - i + 1)));                        
             }
         }
 
@@ -199,7 +180,7 @@ public:
                 default:
                     break;
             }
-
+            // replace (operand1-symbol-operand2) with (result) node
             Node* ptr = new Node(result);
             if (n -> prev -> prev == nullptr)
                 head = ptr;
@@ -289,7 +270,7 @@ void removeSpace(string &str) {
 }
 
 int main () {
-    string s{"-55*7+(-12+34/-(4*(47++-6))/-19)---4^5"}; // input expression
+    string s{"-55*7+(-12+34/-(4*(47-+-6))/-19)---4^5+9"}; // input expression
     
     // string s{}; // for user input
     // cout << "Input expression: ";
