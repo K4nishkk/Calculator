@@ -14,11 +14,11 @@ Simple calculator program using doubly linked list
 
 pros:
     → for combination of integer operands and +, -, *, /, ^, () operations
+    → nested paranthesis are allowed
     → works for two operator situation
     → simple
 
 cons:
-    → nested paranthesis not allowed
     → not for double or floating operands
     → not precise (due to / operation and integer result)
     → try to use stack or expression tree, etc.
@@ -33,7 +33,7 @@ cons:
 using namespace std;
 
 // function to return precedence for binary operators
-int getPrecedence1(char c, int priority, int& count) {
+int getPrecedence1(char c, int priority) {
     unordered_map<char, int> pMap;
     pMap['^'] = 3;
     pMap['*'] = 2;
@@ -41,26 +41,16 @@ int getPrecedence1(char c, int priority, int& count) {
     pMap['-'] = 1;
     pMap['+'] = 0;
 
-    if (count != 0) {
-        --count;
-        return pMap[c] + priority - 100;
-    }
-    else 
-        return pMap[c] + priority;
+    return pMap[c] + priority;
 }
 
 // function to return precedence for unary operators
-int getPrecedence0(char c, int priority, int& count) {
+int getPrecedence0(char c, int priority) {
     unordered_map<char, int> pMap;
     pMap['-'] = 11;
     pMap['+'] = 10;
-
-    if (count != 0) {
-        --count;
-        return pMap[c] + priority - 100;
-    }
-    else 
-        return pMap[c] + priority;
+    
+    return pMap[c] + priority;
 }
 
 class Node{
@@ -120,10 +110,11 @@ public:
     // return a multimap <priority, corresponding pointer to operator node>
     multimap<int, Node*> split(string s) {
 
-        multimap<int, Node*> pMap;
+        multimap<int, Node*> pMap; // to store pointer to operators in order of precedence
+
+        unordered_map<int, int> mFactor; // to store priority that needs to be subtacted
 
         int priority{0};
-        int count{0};
 
         if (s[0] == '-')
             s.insert(s.begin(), {'0'}); // for expression beginning with - sign
@@ -133,18 +124,25 @@ public:
             // update priority on basis of paranthesis
             if (s[j] == '(') {
                 priority += 100;
-                for (int k{j - 1}; isdigit(s[k]) == false; --k) // count number of operators outside paranthesis
-                    ++count;
+                for (int k{j - 1}; isdigit(s[k]) == false; --k) {// count number of operators outside paranthesis
+                    mFactor[k] += 100;
+                }
                 s.erase(s.begin() + j);
+                j--;
+                continue;
             }
             if (s[j] == ')') {
                 priority -= 100;
                 s.erase(s.begin() + j);
+                j--;
+                continue;
             }
 
             // parsing
-            if (i == 0 && isdigit(s[j]) == true && isdigit(s[j + 1]) == false) // for integer at beginning of expression
+            if (i == 0 && isdigit(s[j]) == true && isdigit(s[j + 1]) == false) {// for integer at beginning of expression
                 insertNode(stoi(s.substr(i, j - i + 1)));
+                i = j + 1;
+            }
             
             else {
                 if (isdigit(s[j]) == true && isdigit(s[j - 1]) == false) // i is the start of integer
@@ -153,12 +151,12 @@ public:
                 if (isdigit(s[j]) == true && isdigit(s[j + 1]) == false) { // j is end of integer
                         
                     if (isdigit(s[i - 2]) == false) {
-                        pMap.insert(pair<int, Node*>(getPrecedence1(s[i - 2], priority, count), insertNode(s[i - 2])));
-                        pMap.insert(pair<int, Node*>(getPrecedence0(s[i - 1], priority, count), insertNode(s[i - 1])));
+                        pMap.insert(pair<int, Node*>(getPrecedence1(s[i - 2], priority - mFactor[i - 2]), insertNode(s[i - 2])));
+                        pMap.insert(pair<int, Node*>(getPrecedence0(s[i - 1], priority - mFactor[i - 1]), insertNode(s[i - 1])));
                         insertNode(stoi(s.substr(i, j - i + 1)));
                     }
                     else {
-                        pMap.insert(pair<int, Node*>(getPrecedence1(s[i - 1], priority, count), insertNode(s[i - 1])));
+                        pMap.insert(pair<int, Node*>(getPrecedence1(s[i - 1], priority - mFactor[i - 1]), insertNode(s[i - 1])));
                         insertNode(stoi(s.substr(i, j - i + 1)));
                     }
                 }
@@ -199,8 +197,7 @@ public:
                 default:
                     break;
             }
-            
-            // replace (operand1-symbol-operand2) with (result) node
+
             Node* ptr = new Node(result);
             if (n -> prev -> prev == nullptr)
                 head = ptr;
@@ -271,14 +268,8 @@ public:
             if (n -> symbol == '\0') // for operands
                 cout << n -> data << "   ";
 
-            else if (n -> prev -> symbol == '\0') // for binary operators
+            else // for operators
                 cout << n -> symbol << "   ";
-
-            else { // for unary operators (problem with precedence)
-                cout << "(" << n -> symbol;
-                n = n -> next;
-                cout << n -> data << ")   ";
-            }
             
             n = n -> next;
         }
@@ -296,7 +287,7 @@ void removeSpace(string &str) {
 }
 
 int main () {
-    string s{"-100*-12+-4/(-6-19)-66*+7^(5-2)"}; // input expression
+    string s{"-100*-12+(-4/(-6-19)-66)*+7^(5-2)"}; // input expression
     
     // string s{}; // for user input
     // cout << "Input expression: ";
@@ -318,5 +309,5 @@ int main () {
     exp.printList();
 
     int result = exp.cal(pMap); // calculate result
-    cout << "=   " << result << endl; // display result
+    cout << "=   " << result << endl;
 }
