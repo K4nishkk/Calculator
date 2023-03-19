@@ -6,9 +6,9 @@
 */
 
 #include <iostream>
+#include <climits>
 #include <cmath>
 #include <string>
-#include <queue>
 #include <unordered_map>
 using namespace std;
 
@@ -46,17 +46,15 @@ public:
 
     // recursive function to construct expression tree from infix expression
     Node* construct(string s) {
-        int minPriority{1000}; // value of minimum priority
-        int minj{1000}; // index with maximum priority operator
+        int minPriority{INT_MAX}; // value of minimum priority
+        int minj{-1}; // index with maximum priority operator
 
         int priority{};
 
         if (s[0] == '-')
             s.insert(s.begin(), {'0'}); // for expression beginning with - sign
 
-        s.insert(s.begin(), {'\0'});
-
-        for (int i{1}, j{1}; j < s.size(); j++) { // loop to find operator with max priority
+        for (int i{0}, j{0}; j < s.size(); j++) { // loop to find operator with max priority
 
             // update priority on basis of parenthesis
             if (s[j] == '(') {
@@ -73,23 +71,19 @@ public:
                 continue;
             }
 
-            if (isdigit(s[j]) == false) { // j is the index of operator
-                if (minPriority > getPrecedence(s, j) + priority) {
-                    minPriority = getPrecedence(s, j) + priority;
-                    minj = j;
-                }
+            if (isdigit(s[j]) == false && minPriority > getPrecedence(s, j) + priority) { // j is the index of operator
+                minPriority = getPrecedence(s, j) + priority;
+                minj = j;
             }
         }
 
         // no operator present
-        if (minj == 1000) {
-            s.erase(s.begin());
+        if (minj == -1)
             return new Node(stoi(s));
-        }
 
         // construct tree about max priority operator
         Node* ptr = new Node(s[minj]);
-        ptr -> left = construct(s.substr(1, minj - 1)); // call construct on left substring
+        ptr -> left = construct(s.substr(0, minj)); // call construct on left substring
         ptr -> right = construct(s.substr(minj + 1, s.size() - minj - 1)); // call construct on right substring
 
         return ptr;
@@ -183,7 +177,7 @@ void removeSpace(string &str) {
 }
 
 int main () {
-    string s{"6 + 9 * 8 / 12 - 45 * 9 + 10 ^ 5"}; // input string
+    string s{"1 + 2 * 3 + 4 / 5 ^ 6 ^ 2"}; // input string
 
     removeSpace(s);
 
