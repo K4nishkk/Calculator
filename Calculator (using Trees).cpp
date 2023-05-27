@@ -7,7 +7,7 @@ Simple calculator program using expression tree
     → removeSpace() for removing white spaces
     → overloaded insertNode() to insert operand and operator
     → construct() to construct expression tree from string input
-    → printInorder(), getHeight(), printLevelOrder(), printCurrentLevel() to display expression tree
+    → printLevelOrder() to display expression tree
 
 pros:
     → for combination of integer operands and +, -, *, /, ^, () operations
@@ -24,6 +24,7 @@ cons:
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <queue>
 using namespace std;
 
 class Node{
@@ -55,12 +56,10 @@ public:
     void construct(string s);
 
     void printInorder(Node* focusNode);
-    int getHeight(Node* focusNode);
     void printLevelOrder();
-    void printCurrentLevel(Node* focusNode, int level);
 };
 
-// return pointer to empty node after inserting operator
+// return pointer to node after inserting operator
 Node* ExpTree::insertNode(char c, int priority) {
     if (root -> symbol == '\0' || root -> nodePriority > priority) {
         Node* temp = new Node(c);
@@ -72,9 +71,8 @@ Node* ExpTree::insertNode(char c, int priority) {
 
     Node* focusNode = root;
 
-    while (priority > (focusNode -> right) -> nodePriority && (focusNode -> right) -> symbol != '\0') {
+    while (priority > (focusNode -> right) -> nodePriority && (focusNode -> right) -> symbol != '\0')
         focusNode = focusNode -> right;
-    }
 
     Node* temp = new Node(c);
     temp -> left = focusNode -> right;
@@ -156,42 +154,35 @@ void ExpTree::printInorder(Node* focusNode) {
     printInorder(focusNode -> right);
 }
 
-int ExpTree::getHeight(Node* focusNode) {
-    if (focusNode == nullptr)
-        return 0;
-
-    int lheight = getHeight(focusNode -> left);
-    int rheight = getHeight(focusNode -> right);
-
-    if (lheight > rheight)
-        return lheight + 1;
-    else 
-        return rheight + 1;
-}
-
 void ExpTree::printLevelOrder() {
-    int h = getHeight(root);
-
-    for (int i{}; i < h; i++) {
-        printCurrentLevel(root, i);
-        cout << endl;
-    }
-}
-
-void ExpTree::printCurrentLevel(Node* focusNode, int level) {
-    if (focusNode == nullptr)
+    if (root == nullptr)
         return;
 
-    else if (level == 0) {
-        if (focusNode -> symbol == '\0')
-            cout << focusNode -> data << "   ";
+    queue<Node*> q;
+    q.push(root);
+    int n{1};
+
+    while(q.empty() == false) {
+        Node* temp = q.front();
+
+        if (temp -> symbol == '\0')
+            cout << temp -> data << "   ";
         else 
-            cout << focusNode -> symbol << "   ";
-        return;
-    }
+            cout << temp -> symbol << "   ";
+            
+        q.pop();
+        --n;
 
-    printCurrentLevel(focusNode -> left, level - 1);
-    printCurrentLevel(focusNode -> right, level - 1);
+        if (temp -> left != nullptr)
+            q.push(temp -> left);
+        if (temp -> right != nullptr)
+            q.push(temp -> right);
+
+        if (n == 0) {
+            n = q.size();
+            cout << endl;
+        }
+    }
 }
 
 // function to remove white spaces
