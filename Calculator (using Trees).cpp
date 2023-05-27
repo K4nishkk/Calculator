@@ -1,11 +1,25 @@
-// construction of an expression tree (for binary operators)
-
 /*
-    → add parenthesis priority
-    → add support for unary operators
-*/
 
-// Aim - Construct expression tree from string expression
+Simple calculator program using expression tree
+    → Node class
+    → ExpTree class
+    → getPrecedence() to get precedence of operators
+    → removeSpace() for removing white spaces
+    → overloaded insertNode() to insert operand and operator
+    → construct() to construct expression tree from string input
+    → printInorder(), getHeight(), printLevelOrder(), printCurrentLevel() to display expression tree
+
+pros:
+    → for combination of integer operands and +, -, *, /, ^, () operations
+    → nested paranthesis are allowed
+
+cons:
+    → mulitple simultaneous operators (urnary operators) not allowed
+    → currently cannot evaluate expression tree
+    → not for double or floating operands
+    → not precise (due to / operation and integer result)
+
+*/
 #include <iostream>
 #include <string>
 #include <vector>
@@ -14,8 +28,9 @@ using namespace std;
 
 class Node{
 public:
-    int data;
-    char symbol;
+    int data; // to store operand
+    char symbol; // to store operator
+    int nodePriority;
     Node* left, *right;
 
     // constructor
@@ -23,7 +38,7 @@ public:
         : data{d}, symbol{'\0'}, left{nullptr}, right{nullptr} {}
 
     explicit Node(char c)
-        : symbol{c}, left{nullptr}, right{nullptr} {}
+        : symbol{c}, left{nullptr}, right{nullptr}, nodePriority{} {}
 };
 
 class ExpTree{
@@ -34,38 +49,41 @@ public:
     ExpTree()
         : root{nullptr} {}
 
-    Node* insertNode(char c);
+    Node* insertNode(char c, int priority);
     void insertNode(int d, Node* ptr);
     int getPrecedence(char c);
-    void split(string s);
-    void printInorder(Node* focusNode);
+    void construct(string s);
 
+    void printInorder(Node* focusNode);
     int getHeight(Node* focusNode);
     void printLevelOrder();
     void printCurrentLevel(Node* focusNode, int level);
 };
 
-// return pointer to empty node after inserting operand
-Node* ExpTree::insertNode(char c) {
-    if (root -> symbol == '\0' || getPrecedence(root -> symbol) > getPrecedence(c)) {
+// return pointer to empty node after inserting operator
+Node* ExpTree::insertNode(char c, int priority) {
+    if (root -> symbol == '\0' || root -> nodePriority > priority) {
         Node* temp = new Node(c);
         temp -> left = root;
+        temp -> nodePriority = priority;
         root = temp;
         return root;
     }
 
     Node* focusNode = root;
 
-    while (getPrecedence(c) > getPrecedence(focusNode -> right -> symbol) && focusNode -> right -> symbol != '\0') {
+    while (priority > (focusNode -> right) -> nodePriority && (focusNode -> right) -> symbol != '\0') {
         focusNode = focusNode -> right;
     }
 
     Node* temp = new Node(c);
     temp -> left = focusNode -> right;
+    temp -> nodePriority = priority;
     focusNode -> right = temp;
     return focusNode -> right;
 }
 
+// function to insert operand
 void ExpTree::insertNode(int d, Node* ptr) {
     if (root == nullptr)
         root = new Node(d);
@@ -86,7 +104,7 @@ int ExpTree::getPrecedence(char c) {
     return pMap[c];
 }
 
-void ExpTree::split(string s) {
+void ExpTree::construct(string s) {
 
     int priority{0};
     Node* temp{nullptr};
@@ -114,7 +132,7 @@ void ExpTree::split(string s) {
         }
 
         if (isdigit(s[j]) == false) // j is an operator
-            temp = insertNode(s[j]);
+            temp = insertNode(s[j], getPrecedence(s[j]) + priority);
 
         else {
             if (isdigit(s[j]) == true && isdigit(s[j - 1]) == false) // i is the start of integer
@@ -125,6 +143,7 @@ void ExpTree::split(string s) {
     }
 }
 
+//*************************************************** print functions ***********************************************************
 void ExpTree::printInorder(Node* focusNode) {
     if (focusNode == nullptr)
         return;
@@ -175,10 +194,20 @@ void ExpTree::printCurrentLevel(Node* focusNode, int level) {
     printCurrentLevel(focusNode -> right, level - 1);
 }
 
+// function to remove white spaces
+void removeSpace(string &str) {
+    for (int i{}; i < str.size(); i++) {
+        if (str[i] == ' ') {
+            str.erase(str.begin() + i);
+            i--;
+        }
+    }
+}
+
 int main() {
-    string s{"-12+36-89*45/14"};
+    string s{"-((12+36)-89)*45/(2+5)^6/14"};
     ExpTree exptree;
-    exptree.split(s);
+    exptree.construct(s);
     exptree.printInorder(exptree.root);
     cout << endl;
     exptree.printLevelOrder();
