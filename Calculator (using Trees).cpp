@@ -1,19 +1,80 @@
-// construction of an expression tree (for binary operators) using RECURSION!
+// construction of an expression tree (for binary operators)
 
 /*
-    → find iterative method of forming expression tree
+    → add parenthesis priority
     → add support for unary operators
 */
 
+// Aim - Construct expression tree from string expression
 #include <iostream>
-#include <climits>
-#include <cmath>
 #include <string>
+#include <vector>
 #include <unordered_map>
 using namespace std;
 
+class Node{
+public:
+    int data;
+    char symbol;
+    Node* left, *right;
+
+    // constructor
+    explicit Node(int d) 
+        : data{d}, symbol{'\0'}, left{nullptr}, right{nullptr} {}
+
+    explicit Node(char c)
+        : symbol{c}, left{nullptr}, right{nullptr} {}
+};
+
+class ExpTree{
+public:
+    Node* root;
+
+    // constructor
+    ExpTree()
+        : root{nullptr} {}
+
+    Node* insertNode(char c);
+    void insertNode(int d, Node* ptr);
+    int getPrecedence(char c);
+    void split(string s);
+    void printInorder(Node* focusNode);
+
+    int getHeight(Node* focusNode);
+    void printLevelOrder();
+    void printCurrentLevel(Node* focusNode, int level);
+};
+
+// return pointer to empty node after inserting operand
+Node* ExpTree::insertNode(char c) {
+    if (root -> symbol == '\0' || getPrecedence(root -> symbol) > getPrecedence(c)) {
+        Node* temp = new Node(c);
+        temp -> left = root;
+        root = temp;
+        return root;
+    }
+
+    Node* focusNode = root;
+
+    while (getPrecedence(c) > getPrecedence(focusNode -> right -> symbol) && focusNode -> right -> symbol != '\0') {
+        focusNode = focusNode -> right;
+    }
+
+    Node* temp = new Node(c);
+    temp -> left = focusNode -> right;
+    focusNode -> right = temp;
+    return focusNode -> right;
+}
+
+void ExpTree::insertNode(int d, Node* ptr) {
+    if (root == nullptr)
+        root = new Node(d);
+    else
+        ptr -> right = new Node(d);
+}
+
 // function to return precedence for binary operators
-int getPrecedence(string &s, int j) {
+int ExpTree::getPrecedence(char c) {
     unordered_map<char, int> pMap;
 
     pMap['^'] = 3;
@@ -22,171 +83,103 @@ int getPrecedence(string &s, int j) {
     pMap['-'] = 1;
     pMap['+'] = 0;
 
-    return pMap[s[j]];
+    return pMap[c];
 }
 
-class Node {
-public:
-    int data; // to store operands
-    char symbol; // to store operators
-    Node* left, *right; // pointer to left and right children
+void ExpTree::split(string s) {
 
-    // constructor for operator
-    explicit Node(char c)
-        : symbol{c}, left{nullptr}, right{nullptr} {}
+    int priority{0};
+    Node* temp{nullptr};
 
-    // constructor for operand
-    explicit Node(int d)
-        : data{d}, symbol{'\0'}, left{nullptr}, right{nullptr} {}
-};
+    if (s[0] == '-')
+        s.insert(s.begin(), {'0'}); // for expression beginning with - sign
 
-class ExpTree {
-public:
-    Node* root;
+    s.insert(s.begin(), '\0');
 
-    // recursive function to construct expression tree from infix expression
-    Node* construct(string s) {
-        int minPriority{INT_MAX}; // value of minimum priority
-        int minj{-1}; // index with maximum priority operator
+    for (int i{1}, j{1}; j < s.size(); j++) {
 
-        int priority{};
-
-        if (s[0] == '-')
-            s.insert(s.begin(), {'0'}); // for expression beginning with - sign
-
-        for (int i{0}, j{0}; j < s.size(); j++) { // loop to find operator with max priority
-
-            // update priority on basis of parenthesis
-            if (s[j] == '(') {
-                priority += 100;
-                s.erase(s.begin() + j);
-                j--;
-                continue;
-            }
-
-            if (s[j] == ')') {
-                priority -= 100;
-                s.erase(s.begin() + j);
-                j--;
-                continue;
-            }
-
-            if (isdigit(s[j]) == false && minPriority > getPrecedence(s, j) + priority) { // j is the index of operator
-                minPriority = getPrecedence(s, j) + priority;
-                minj = j;
-            }
+        // update priority on basis of paranthesis
+        if (s[j] == '(') {
+            priority += 100;
+            s.erase(s.begin() + j);
+            j--;
+            continue;
+        }
+        
+        if (s[j] == ')') {
+            priority -= 100;
+            s.erase(s.begin() + j);
+            j--;
+            continue;
         }
 
-        // no operator present
-        if (minj == -1)
-            return new Node(stoi(s));
+        if (isdigit(s[j]) == false) // j is an operator
+            temp = insertNode(s[j]);
 
-        // construct tree about max priority operator
-        Node* ptr = new Node(s[minj]);
-        ptr -> left = construct(s.substr(0, minj)); // call construct on left substring
-        ptr -> right = construct(s.substr(minj + 1, s.size() - minj - 1)); // call construct on right substring
-
-        return ptr;
+        else {
+            if (isdigit(s[j]) == true && isdigit(s[j - 1]) == false) // i is the start of integer
+                i = j;
+            if (isdigit(s[j]) == true && isdigit(s[j + 1]) == false) // j is end of integer
+                insertNode(stoi(s.substr(i, j - i + 1)), temp);            
+        }
     }
+}
 
-    // function for inorder traversal of node
-    void printInorder(Node* focusNode) {
-        if (focusNode == nullptr)
-            return;
+void ExpTree::printInorder(Node* focusNode) {
+    if (focusNode == nullptr)
+        return;
 
-        printInorder(focusNode -> left);
+    printInorder(focusNode -> left);
+    if (focusNode -> symbol == '\0')
+        cout << focusNode -> data << "   ";
+    else 
+        cout << focusNode -> symbol << "   ";
+    printInorder(focusNode -> right);
+}
 
+int ExpTree::getHeight(Node* focusNode) {
+    if (focusNode == nullptr)
+        return 0;
+
+    int lheight = getHeight(focusNode -> left);
+    int rheight = getHeight(focusNode -> right);
+
+    if (lheight > rheight)
+        return lheight + 1;
+    else 
+        return rheight + 1;
+}
+
+void ExpTree::printLevelOrder() {
+    int h = getHeight(root);
+
+    for (int i{}; i < h; i++) {
+        printCurrentLevel(root, i);
+        cout << endl;
+    }
+}
+
+void ExpTree::printCurrentLevel(Node* focusNode, int level) {
+    if (focusNode == nullptr)
+        return;
+
+    else if (level == 0) {
         if (focusNode -> symbol == '\0')
             cout << focusNode -> data << "   ";
         else 
             cout << focusNode -> symbol << "   ";
-
-        printInorder(focusNode -> right);
+        return;
     }
 
-    // ************************ functions to display tree in 2D fromat *************************************
-    void space(int d) {
-        for (int i{}; i < d; i++)
-            cout << " ";
-    }
-   
-    // function to get height of expression tree
-    int height(Node* focusNode) {
-        if (focusNode == nullptr)
-            return 0;
-
-        // find height of subtrees
-        int lheight = height(focusNode -> left);
-        int rheight = height(focusNode -> right);
-
-        if (lheight > rheight)
-            return lheight + 1;
-        else
-            return rheight + 1;
-    }
-
-    // function to print nodes at current level
-    void printCurrentLevel(Node* focusNode, int level, int d) {
-        if (focusNode -> left == nullptr) {
-            focusNode -> left = new Node(' ');
-        }
-
-        if (focusNode -> right == nullptr) {
-            focusNode -> right = new Node(' ');
-        }
-        
-        if (level == 1) {
-            if (focusNode -> symbol == '\0') {
-                space(d);
-                cout << focusNode -> data;
-                space(d);
-            }
-            else {
-                space(d);
-                cout << focusNode -> symbol;
-                space(d);
-            }
-        }
-
-        else if (level > 1) {
-            printCurrentLevel(focusNode -> left, level - 1, d);
-            printCurrentLevel(focusNode -> right, level - 1, d);
-        }
-    }
-
-    // function for level order traversal
-    void printLevelOrder() {
-        int h = height(root);
-        int w = 2 * pow(2, h);
-        for (int i{1}; i <= h; i++) {
-            printCurrentLevel(root, i, (w - pow(2, i - 1)) / pow(2, i));
-            cout << "\n\n";
-        }
-    }
-    // ***************************************************************************************************
-};
-
-// function to remove white spaces
-void removeSpace(string &str) {
-    for (int i{}; i < str.size(); i++) {
-        if (str[i] == ' ') {
-            str.erase(str.begin() + i);
-            i--;
-        }
-    }
+    printCurrentLevel(focusNode -> left, level - 1);
+    printCurrentLevel(focusNode -> right, level - 1);
 }
 
-int main () {
-    string s{"1 + 2 * 3 + 4 / 5 ^ 6 ^ 2"}; // input string
-
-    removeSpace(s);
-
-    ExpTree exp; // creating a variable of type ExpTree
-
-    exp.root = exp.construct(s); // constructing expression tree from input string
-
-    exp.printInorder(exp.root); // inorder traversal
-    cout << "\n\n";
-
-    exp.printLevelOrder(); // 2D display
+int main() {
+    string s{"-12+36-89*45/14"};
+    ExpTree exptree;
+    exptree.split(s);
+    exptree.printInorder(exptree.root);
+    cout << endl;
+    exptree.printLevelOrder();
 }
