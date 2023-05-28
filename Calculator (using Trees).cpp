@@ -12,10 +12,10 @@ Simple calculator program using expression tree
 pros:
     → for combination of integer operands and +, -, *, /, ^, () operations
     → nested paranthesis are allowed
+    → can evaluate expression tree
 
 cons:
     → mulitple simultaneous operators (urnary operators) not allowed
-    → currently cannot evaluate expression tree
     → not for double or floating operands
     → not precise (due to / operation and integer result)
 
@@ -25,6 +25,7 @@ cons:
 #include <vector>
 #include <unordered_map>
 #include <queue>
+#include <cmath>
 using namespace std;
 
 class Node{
@@ -54,6 +55,7 @@ public:
     void insertNode(int d, Node* ptr);
     int getPrecedence(char c);
     void construct(string s);
+    int eval(Node* focusNode);
 
     void printInorder(Node* focusNode);
     void printLevelOrder();
@@ -141,6 +143,34 @@ void ExpTree::construct(string s) {
     }
 }
 
+int ExpTree::eval(Node* focusNode) {
+    if (root == nullptr)
+        return 0;
+    
+    else if (focusNode -> symbol == '\0')
+        return focusNode -> data;
+
+    else {
+        switch (focusNode -> symbol) {
+            case '+':
+                return eval(focusNode -> left) + eval(focusNode -> right);
+
+            case '-':
+                return eval(focusNode -> left) - eval(focusNode -> right);
+
+            case '*':
+                return eval(focusNode -> left) * eval(focusNode -> right);
+
+            case '/':
+                return eval(focusNode -> left) / eval(focusNode -> right);
+
+            case '^':
+                return pow(eval(focusNode -> left), eval(focusNode -> right));
+        }
+    }
+    return 0;
+}
+
 //*************************************************** print functions ***********************************************************
 void ExpTree::printInorder(Node* focusNode) {
     if (focusNode == nullptr)
@@ -196,10 +226,12 @@ void removeSpace(string &str) {
 }
 
 int main() {
-    string s{"-((12+36)-89)*45/(2+5)^6/14"};
+    string s{"-1 + (2 + 9 )* 4^3/2"};
+    removeSpace(s);
     ExpTree exptree;
     exptree.construct(s);
     exptree.printInorder(exptree.root);
     cout << endl;
     exptree.printLevelOrder();
+    cout << exptree.eval(exptree.root) << endl;
 }
