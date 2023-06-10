@@ -1,0 +1,122 @@
+[
+	[
+		{
+			"contain" : true,
+			"data" : 1,
+			"width" : 100.0
+		}
+	],
+	[
+		{
+			"contain" : true,
+			"data" : 2,
+			"width" : 50.0
+		},
+		{
+			"contain" : true,
+			"data" : 6,
+			"width" : 50.0
+		}
+	],
+	[
+		{
+			"contain" : true,
+			"data" : 3,
+			"width" : 16.666666666666668
+		},
+		{
+			"contain" : true,
+			"data" : 4,
+			"width" : 16.666666666666668
+		},
+		{
+			"contain" : true,
+			"data" : 5,
+			"width" : 16.666666666666668
+		},
+		{
+			"contain" : true,
+			"data" : 7,
+			"width" : 8.3333333333333339
+		},
+		{
+			"contain" : true,
+			"data" : 8,
+			"width" : 8.3333333333333339
+		},
+		{
+			"contain" : true,
+			"data" : 9,
+			"width" : 8.3333333333333339
+		},
+		{
+			"contain" : true,
+			"data" : 10,
+			"width" : 8.3333333333333339
+		},
+		{
+			"contain" : true,
+			"data" : 11,
+			"width" : 8.3333333333333339
+		},
+		{
+			"contain" : true,
+			"data" : 12,
+			"width" : 8.3333333333333339
+		}
+	],
+	[
+		{
+			"contain" : false,
+			"width" : 16.666666666666668
+		},
+		{
+			"contain" : true,
+			"data" : 16,
+			"width" : 5.5555555555555554
+		},
+		{
+			"contain" : true,
+			"data" : 17,
+			"width" : 5.5555555555555554
+		},
+		{
+			"contain" : true,
+			"data" : 18,
+			"width" : 5.5555555555555554
+		},
+		{
+			"contain" : false,
+			"width" : 41.666666666666671
+		},
+		{
+			"contain" : true,
+			"data" : 13,
+			"width" : 8.3333333333333339
+		},
+		{
+			"contain" : false,
+			"width" : 16.666666666666668
+		}
+	],
+	[
+		{
+			"contain" : false,
+			"width" : 75.0
+		},
+		{
+			"contain" : true,
+			"data" : 14,
+			"width" : 4.166666666666667
+		},
+		{
+			"contain" : true,
+			"data" : 15,
+			"width" : 4.166666666666667
+		},
+		{
+			"contain" : false,
+			"width" : 16.666666666666668
+		}
+	]
+]
