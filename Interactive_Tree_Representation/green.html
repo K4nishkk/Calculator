@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tree View</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            padding: 0;
+            margin: 0;
+        }
+
+        .container {
+            margin: 10px;
+        }
+
+        .cell {
+            width : 30%;
+            display: inline-block;
+            justify-content: space-between;
+        }
+
+        .item {
+            text-align: center;
+            margin: auto;
+            padding: 20px;
+            border-radius: 100px;
+            width: 60px;
+            height: 60px;
+        }
+    </style>
+</head>
+<body>
+    
+</body>
+<script>
+    async function logJsonData() {
+        const response = await fetch("details.json");
+        const jsonData = await response.json();
+        console.log(jsonData);
+        return jsonData;
+    }
+
+    (logJsonData()).then(
+        (v) => {
+            const b = document.getElementsByTagName("body")[0];
+            for (let i = 0; i < v.length; i++) {
+
+                const d = document.createElement("div");
+                d.setAttribute("class", "container");
+
+                for (let j = 0; j < v[i].length; j++) {
+
+                    const s = document.createElement("span");
+                    s.setAttribute("class", "cell");
+                    const a = document.createElement("div");
+                    a.setAttribute("class", "item");
+
+                    let node;
+                    if (v[i][j]["contain"] == true) {
+                        node = document.createTextNode(v[i][j]["data"]);
+                        a.appendChild(node);
+                        s.appendChild(a);
+                        s.style.width = v[i][j]["width"] + "%";
+                        s.style.borderStyle = "solid";
+                        s.style.borderTop = "1px";
+                        s.style.borderBottom = "100px";
+                        a.style.backgroundColor = "aqua";
+                        
+                    }
+                    else {
+                        node = document.createTextNode(" ");        
+                        a.appendChild(node); 
+                        s.appendChild(a);               
+                        s.style.width = v[i][j]["width"] + "%";
+                    }
+                    d.appendChild(s);
+                    b.appendChild(d);
+                }
+            }
+        }
+    )
+</script>
+</html>
